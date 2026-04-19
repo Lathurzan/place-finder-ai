@@ -1,5 +1,6 @@
 // src/components/Navbar.tsx
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,18 +30,18 @@ export default function Navbar() {
 
         {/* CTA Buttons */}
         <div className="flex items-center gap-2">
-          <a
-            href="#"
+          <Link
+            to="/login"
             className="hidden sm:block text-slate-400 text-[13px] font-medium px-5 py-2 rounded-full border border-white/8 hover:border-white/20 hover:text-white transition-all no-underline"
           >
             Sign in
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/register"
             className="bg-emerald-400 text-[#022c22] text-[13px] font-semibold px-5 py-2 rounded-full hover:bg-emerald-300 hover:-translate-y-px transition-all no-underline whitespace-nowrap"
           >
             Get started
-          </a>
+          </Link>
         </div>
 
         {/* Hamburger (mobile) */}
