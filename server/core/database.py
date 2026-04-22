@@ -5,6 +5,13 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    create_async_engine,
+    async_sessionmaker,
+)
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import text
 from core.config import settings
 from typing import Optional, AsyncGenerator
 
@@ -20,9 +27,7 @@ try:
         pool_pre_ping=True,        # auto-reconnect if connection drops
     )
 except ModuleNotFoundError:
-    # Driver not present; silently disable DB features at import time so the
-    # application can be imported without printing warnings. When DB features
-    # are required the app should run in an environment with the driver.
+    # Driver not present; keep engine as None and raise clear errors at runtime
     engine = None
 
 # ── Session factory ───────────────────────────────────────────
@@ -45,7 +50,7 @@ class Base(DeclarativeBase):
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     if AsyncSessionLocal is None:
         raise RuntimeError(
-            "Async DB session factory not initialized. Is the DB driver installed and DATABASE_URL configured?"
+            "Async DB session factory not initialized. Install the async DB driver (e.g. asyncpg) and configure DATABASE_URL."
         )
 
     async with AsyncSessionLocal() as session:

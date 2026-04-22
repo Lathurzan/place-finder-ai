@@ -1,0 +1,48 @@
+{
+  "info": {
+    "_postman_id": "openweather-0000-0000-0000-000000000000",
+    "name": "OpenWeather - Place Finder AI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Current weather (proxied)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/weather/current?lat=35.6895&lon=139.6917&units=metric",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","weather","current"],
+          "query": [
+            { "key": "lat", "value": "35.6895" },
+            { "key": "lon", "value": "139.6917" },
+            { "key": "units", "value": "metric" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Forecast (proxied)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/weather/forecast?lat=35.6895&lon=139.6917&units=metric&exclude=minutely,alerts",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","weather","forecast"],
+          "query": [
+            { "key": "lat", "value": "35.6895" },
+            { "key": "lon", "value": "139.6917" },
+            { "key": "units", "value": "metric" },
+            { "key": "exclude", "value": "minutely,alerts" }
+          ]
+        }
+      }
+    }
+  ]
+}
