@@ -1,6 +1,6 @@
 // src/pages/Login.tsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import registerImage from "../assets/registerLeftImage.jpg";
 import registerImage1 from "../assets/registerLeftImage1.jpg";
 import registerImage2 from "../assets/rigisterLeftImage2.webp";
@@ -11,23 +11,52 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: connect to your auth API
-    setTimeout(() => {
-      setLoading(false);
-      // simple mock auth
-      import("../mockData").then(({ mockUser }) => {
-        if (form.email === mockUser.email && form.password === mockUser.password) {
-          localStorage.setItem("mock_auth", "1");
-          window.location.href = "/home";
-        } else {
-          alert("Invalid mock credentials. Use user@example.com / password123");
-        }
+    try {
+      const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password }),
       });
-    }, 800);
+
+      let data: any = {};
+      try { data = await res.json(); } catch (e) { /* non-json */ }
+
+      if (!res.ok) {
+        const extractMessage = (d: any) => {
+          if (!d) return `Login failed (${res.status})`;
+          if (typeof d === "string") return d;
+          if (Array.isArray(d?.detail)) return d.detail.map((it:any)=> it?.msg || JSON.stringify(it)).join('; ');
+          if (typeof d.detail === 'string') return d.detail;
+          if (d?.message) return d.message;
+          try { return JSON.stringify(d); } catch { return String(d); }
+        };
+        const message = extractMessage(data);
+        console.error('Login error', res.status, data);
+        alert(message);
+        return;
+      }
+
+      if (data?.access_token) {
+        try {
+          localStorage.setItem('pf_token', data.access_token);
+          localStorage.setItem('pf_user', JSON.stringify(data.user || {}));
+        } catch (err) {}
+        navigate('/home');
+      } else {
+        alert('Unexpected response from server');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while signing in. Check backend and network.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // removed dark/light mode logic

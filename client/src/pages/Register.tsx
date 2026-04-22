@@ -1,6 +1,6 @@
 // src/pages/Register.tsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import registerImage from "../assets/registerLeftImage.jpg";
 import registerImage1 from "../assets/registerLeftImage1.jpg";
 import registerImage2 from "../assets/rigisterLeftImage2.webp";
@@ -15,14 +15,77 @@ export default function Register() {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
+
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    try {
+      // Use Vite environment variable if provided, otherwise default to localhost:8000
+      const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+      });
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        // non-json response
+      }
+
+      if (!res.ok) {
+        // extract helpful error message from common FastAPI response shapes
+        const extractMessage = (d: any) => {
+          if (!d) return `Registration failed (${res.status})`;
+          if (typeof d === "string") return d;
+          // FastAPI validation errors are typically an array under detail
+          if (Array.isArray(d)) return d.map((it: any) => it?.msg || JSON.stringify(it)).join("; ");
+          if (Array.isArray(d?.detail)) {
+            return d.detail.map((it: any) => {
+              if (typeof it === "string") return it;
+              if (it?.msg) return it.msg;
+              return JSON.stringify(it);
+            }).join("; ");
+          }
+          if (typeof d.detail === "string") return d.detail;
+          if (d?.message) return d.message;
+          // fallback to stringifying the object
+          try { return JSON.stringify(d); } catch (e) { return String(d); }
+        };
+
+        const message = extractMessage(data);
+        console.error("Registration error", res.status, data);
+        alert(message);
+        return;
+      }
+
+      // Expected response: { access_token, token_type, user }
+      if (data?.access_token) {
+        try {
+          localStorage.setItem("pf_token", data.access_token);
+          localStorage.setItem("pf_user", JSON.stringify(data.user || {}));
+        } catch (err) {
+          // ignore storage errors
+        }
+        // Navigate to home (existing route)
+        navigate("/home");
+      } else {
+        alert("Unexpected response from server");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error while registering. Check your connection and backend.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Live validation helpers
