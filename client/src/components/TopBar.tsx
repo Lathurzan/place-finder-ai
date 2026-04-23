@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "./ThemeToggle";
 
 type Props = {
   onSearch?: (query: string) => void;
@@ -18,7 +19,7 @@ const Topbar = ({ onSearch }: Props) => {
 
   return (
     <div className="
-      h-[60px] bg-white border-b border-gray-100
+      h-[60px] bg-white dark:bg-[#060c18] border-b border-gray-100 dark:border-white/[0.07]
       flex items-center gap-3 px-5
       flex-shrink-0 w-full
     ">
@@ -27,16 +28,16 @@ const Topbar = ({ onSearch }: Props) => {
       <div
         className="
           flex items-center gap-2 flex-1 max-w-[480px]
-          bg-[#f5f3ef] border border-transparent
+          bg-[#f5f3ef] dark:bg-white/[0.03] border border-transparent dark:border-transparent
           rounded-full px-4 h-[38px]
-          focus-within:border-emerald-400 focus-within:bg-white
+          focus-within:border-emerald-400 dark:focus-within:border-emerald-500 focus-within:bg-white dark:focus-within:bg-white/[0.06]
           transition-all duration-150 cursor-text
         "
         onClick={() => inputRef.current?.focus()}
       >
         {/* Search icon */}
         <svg
-          className="w-[15px] h-[15px] text-gray-400 flex-shrink-0"
+          className="w-[15px] h-[15px] text-gray-400 dark:text-white/40 flex-shrink-0"
           viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2" strokeLinecap="round"
         >
@@ -52,18 +53,18 @@ const Topbar = ({ onSearch }: Props) => {
           onChange={(e) => handleSearch(e.target.value)}
           className="
             flex-1 bg-transparent border-none outline-none
-            text-[13px] text-gray-700 placeholder-gray-400
+            text-[13px] text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-white/30
             font-medium
           "
         />
 
         {/* Voice + Image buttons */}
-        <div className="flex items-center gap-0.5">
+  <div className="flex items-center gap-0.5">
           <button
             title="Voice search"
             className="
               w-7 h-7 flex items-center justify-center rounded-full
-              text-gray-400 hover:text-gray-600 hover:bg-gray-200/60
+              text-gray-400 dark:text-white/40 hover:text-gray-600 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-white/10
               transition-all duration-150
             "
           >
@@ -78,7 +79,7 @@ const Topbar = ({ onSearch }: Props) => {
             title="Image search"
             className="
               w-7 h-7 flex items-center justify-center rounded-full
-              text-gray-400 hover:text-gray-600 hover:bg-gray-200/60
+              text-gray-400 dark:text-white/40 hover:text-gray-600 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-white/10
               transition-all duration-150
             "
           >
@@ -93,7 +94,7 @@ const Topbar = ({ onSearch }: Props) => {
       </div>
 
       {/* ── Right side ── */}
-      <div className="flex items-center gap-2 ml-auto">
+  <div className="flex items-center gap-2 ml-auto">
 
         {/* Open Finder */}
         <button
@@ -101,9 +102,9 @@ const Topbar = ({ onSearch }: Props) => {
           className="
             flex items-center gap-1.5
             h-[34px] px-4 rounded-full
-            border border-gray-200 bg-white
-            text-[13px] font-medium text-gray-600
-            hover:bg-gray-50 hover:border-gray-300
+            border border-gray-200 dark:border-white/[0.07] bg-white dark:bg-[#060c18]
+            text-[13px] font-medium text-gray-600 dark:text-white/80
+            hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20
             transition-all duration-150
           "
         >
@@ -136,13 +137,13 @@ const Topbar = ({ onSearch }: Props) => {
         </button>
 
         {/* Notification bell */}
-        <div className="relative">
+  <div className="relative">
           <button
             onClick={() => setNotifOpen(!notifOpen)}
             className="
               w-[34px] h-[34px] flex items-center justify-center
-              rounded-full border border-gray-200 bg-white
-              text-gray-500 hover:bg-gray-50 hover:border-gray-300
+              rounded-full border border-gray-200 dark:border-white/[0.07] bg-white dark:bg-[#060c18]
+              text-gray-500 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20
               transition-all duration-150 relative
             "
           >
@@ -155,19 +156,19 @@ const Topbar = ({ onSearch }: Props) => {
             <span className="
               absolute top-[7px] right-[7px]
               w-[7px] h-[7px] rounded-full
-              bg-emerald-500 border-2 border-white
+              bg-emerald-500 border-2 border-white dark:border-[#060c18]
             "/>
           </button>
-
+          
           {/* Dropdown */}
           {notifOpen && (
             <div className="
               absolute right-0 top-[calc(100%+8px)] w-[280px]
-              bg-white/60 backdrop-blur-sm border border-gray-100 rounded-3xl
+              bg-white/60 dark:bg-[#101a28]/80 backdrop-blur-sm border border-gray-100 dark:border-white/[0.07] rounded-3xl
               shadow-xl shadow-black/8 z-50 overflow-hidden
             ">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <span className="text-[13px] font-semibold text-gray-800">Notifications</span>
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-white/[0.07] flex items-center justify-between">
+                <span className="text-[13px] font-semibold text-gray-800 dark:text-white">Notifications</span>
                 <span className="text-[11px] text-emerald-500 font-medium cursor-pointer hover:text-emerald-600">
                   Mark all read
                 </span>
@@ -181,8 +182,8 @@ const Topbar = ({ onSearch }: Props) => {
                   key={i}
                   className={`
                     flex items-start gap-3 px-4 py-3
-                    hover:bg-gray-50 cursor-pointer transition-colors
-                    border-b border-gray-50 last:border-none
+                    hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors
+                    border-b border-gray-50 dark:border-white/[0.04] last:border-none
                   `}
                 >
                   <div className={`
@@ -190,10 +191,10 @@ const Topbar = ({ onSearch }: Props) => {
                     ${n.unread ? "bg-emerald-500" : "bg-transparent"}
                   `}/>
                   <div>
-                    <p className="text-[13px] text-gray-700 font-medium leading-snug">
+                    <p className="text-[13px] text-gray-700 dark:text-white font-medium leading-snug">
                       {n.title}
                     </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{n.time}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-white/40 mt-0.5">{n.time}</p>
                   </div>
                 </div>
               ))}

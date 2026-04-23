@@ -60,21 +60,12 @@ const NAV_MAIN = [
 ];
 
 const NAV_ACCOUNT = [
-  {
-    name: "Profile",
-    to: "/profile",
-    icon: (
-      <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="10" cy="7" r="3.5"/>
-        <path d="M3 17a7 7 0 0114 0" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
+
   {
     name: "Settings",
     to: "/settings",
     icon: (
-      <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="1.8">
+      <svg viewBox="0 0 20 20" fill="none" className="w-4 h-5" stroke="currentColor" strokeWidth="1.8">
         <circle cx="10" cy="10" r="2.5"/>
         <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/>
       </svg>

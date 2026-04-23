@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "../context/ThemeContext";
 import { mockPlaces } from "../mockData";
 import AppLayout from "../layouts/AppLayout";
 
@@ -14,7 +15,7 @@ const Card = ({
 }) => (
   <div
     style={style}
-    className={`bg-white border border-gray-100 rounded-2xl shadow-sm ${className}`}
+    className={`bg-white dark:bg-[#061826] border border-gray-100 dark:border-white/[0.06] rounded-2xl shadow-sm ${className}`}
   >
     {children}
   </div>
@@ -27,8 +28,8 @@ const SectionHead = ({
   title: string;
   action?: React.ReactNode;
 }) => (
-  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
-    <span className="text-[13px] font-semibold text-gray-800">{title}</span>
+  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50 dark:border-white/[0.04]">
+    <span className="text-[13px] font-semibold text-gray-800 dark:text-gray-200">{title}</span>
     {action}
   </div>
 );
@@ -64,10 +65,10 @@ const StatCard = ({
       </svg>
     </div>
     <div>
-      <div className="text-[22px] font-bold text-gray-900 leading-none">
+      <div className="text-[22px] font-bold text-gray-900 dark:text-gray-100 leading-none">
         {value}
       </div>
-      <div className="text-[11px] text-gray-400 mt-1">{label}</div>
+      <div className="text-[11px] text-gray-400 dark:text-gray-400/80 mt-1">{label}</div>
     </div>
   </Card>
 );
@@ -168,6 +169,7 @@ const Home = () => {
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState(AI_MESSAGES);
   const [mapView, setMapView] = useState<"Bookmarks" | "Trending" | "Nearby">("Bookmarks");
+  const { theme } = useTheme();
 
   // Weather state
   const [localWeather, setLocalWeather] = useState<any | null>(null);
@@ -246,15 +248,22 @@ const Home = () => {
 
   return (
     <AppLayout onSearch={setSearchQuery}>
-      <div className="p-5 space-y-4 max-w-[1400px] mx-auto">
+      <div className={`p-5 space-y-4 max-w-[1400px] mx-auto bg-gray-50 dark:bg-[#041226]`}> 
 
         {/* ── Welcome row ── */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">
-              Good morning, Alex 👋
-            </h1>
-            <p className="text-[13px] text-gray-400 mt-0.5">
+            <div className="flex items-center gap-3">
+              <h1 className="text-[22px] font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                Good morning, Alex 👋
+              </h1>
+              <span className="text-[12px] px-2 py-1 rounded-full bg-gray-100 dark:bg-white/6 text-gray-700 dark:text-gray-100 font-medium">
+                {/* show current theme */}
+                {theme === "dark" ? "Dark" : "Light"}
+              </span>
+            </div>
+
+            <p className="text-[13px] text-gray-400 dark:text-gray-300 mt-0.5">
               You have 4 bookmarked places and 3 saved itineraries. Ready to explore?
             </p>
             {searchQuery && (
@@ -265,13 +274,26 @@ const Home = () => {
           </div>
 
           {/* Weather chip */}
-          <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-sm flex-shrink-0">
+          <div className="flex items-center gap-3 bg-white dark:bg-[#062235] border border-gray-100 dark:border-white/[0.06] rounded-2xl px-4 py-3 shadow-sm flex-shrink-0">
             <span className="text-[28px] leading-none">{localWeather ? (localWeather.raw?.weather?.[0]?.icon?.startsWith('0') ? '⛅' : '🌤️') : '⛅'}</span>
             <div>
-              <div className="text-[20px] font-bold text-gray-900 leading-none">{localWeather ? `${Math.round(localWeather.temp)}°C` : '18°C'}</div>
-              <div className="text-[11px] text-gray-400 mt-0.5">{localWeather ? localWeather.raw?.name : 'Glasgow, UK'}</div>
+              <div className="text-[20px] font-bold text-gray-900 dark:text-gray-100 leading-none">
+                {weatherLoading ? (
+                  <span className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-200">
+                    <svg className="w-4 h-4 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round"/>
+                    </svg>
+                    Loading
+                  </span>
+                ) : localWeather ? `${Math.round(localWeather.temp)}°C` : '18°C'}
+              </div>
+              <div className="text-[11px] text-gray-400 dark:text-gray-300 mt-0.5">
+                {weatherError ? weatherError : (localWeather ? localWeather.raw?.name : 'Glasgow, UK')}
+              </div>
             </div>
-            <div className="text-[12px] text-gray-400 ml-1">{localWeather ? localWeather.description : 'Partly cloudy'}</div>
+            <div className="text-[12px] text-gray-400 dark:text-gray-300 ml-1">
+              {weatherLoading ? '' : (localWeather ? localWeather.description : 'Partly cloudy')}
+            </div>
           </div>
         </div>
 
@@ -588,8 +610,8 @@ const Home = () => {
 
           {/* Weather */}
           <Card className="overflow-hidden" style={{ background: "linear-gradient(135deg,#1a3a4a,#0f2030)" }}>
-            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-              <span className="text-[13px] font-semibold text-white">Destination weather</span>
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
+              <span className="text-[13px] font-semibold text-gray-900 dark:text-white">Destination weather</span>
               <button className="text-[12px] text-emerald-400 hover:text-emerald-300 font-medium">
                 Compare
               </button>
@@ -616,7 +638,7 @@ const Home = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> 
           </Card>
 
         </div>
