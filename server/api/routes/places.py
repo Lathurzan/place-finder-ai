@@ -1,8 +1,18 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from services.geocode_service import get_coordinates, search_places
 
 router = APIRouter()
 
+@router.get("/search")
+def search_location(q: str = Query(...)):
+    result = get_coordinates(q)
 
-@router.get("/", tags=["Places"])
-async def read_places_root():
-	return {"status": "places routes working"}
+    if not result:
+        return {"error": "Location not found"}
+
+    return result
+
+
+@router.get("/search-multiple")
+def search_multiple(q: str):
+    return search_places(q)

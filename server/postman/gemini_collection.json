@@ -1,0 +1,29 @@
+{
+  "info": {
+    "_postman_id": "gemini-0000-0000-0000-000000000000",
+    "name": "Gemini - Place Finder AI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Generate text",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"Suggest a 3-day itinerary for Kyoto for a first-time visitor.\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/ai/generate",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","ai","generate"]
+        }
+      }
+    }
+  ]
+}

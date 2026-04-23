@@ -1,0 +1,221 @@
+{
+  "info": {
+    "name": "Place Finder AI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token",    "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.access_token) {",
+                "  pm.collectionVariables.set('token', json.access_token);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Places",
+      "item": [
+        {
+          "name": "Search Single Place",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/places/search?q=Paris",
+              "host": ["{{base_url}}"],
+              "path": ["api", "places", "search"],
+              "query": [{ "key": "q", "value": "Paris" }]
+            }
+          }
+        },
+        {
+          "name": "Search Multiple Places",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/places/search-multiple?q=London",
+              "host": ["{{base_url}}"],
+              "path": ["api", "places", "search-multiple"],
+              "query": [{ "key": "q", "value": "London" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "AI Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/ai/health"
+          }
+        },
+        {
+          "name": "Generate Text",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/ai/generate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Tell me about the Eiffel Tower\",\n  \"max_tokens\": 512\n}"
+            }
+          }
+        },
+        {
+          "name": "Chat",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/ai/chat",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What are the best places to visit in Tokyo?\",\n  \"history\": [\n    { \"role\": \"user\",  \"parts\": [\"Hello!\"] },\n    { \"role\": \"model\", \"parts\": [\"Hi! How can I help you today?\"] }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Analyze Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/ai/analyze-image",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_data\": \"<BASE64_ENCODED_IMAGE_STRING>\",\n  \"prompt\": \"Identify this location and describe what you see.\",\n  \"mime_type\": \"image/jpeg\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Generate Itinerary",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/ai/itinerary",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"Paris, France\",\n  \"num_days\": 3,\n  \"interests\": [\"history\", \"food\", \"art\"],\n  \"budget\": \"moderate\",\n  \"travel_style\": \"balanced\",\n  \"start_date\": \"2026-05-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Recommend Places",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/ai/recommend",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Rome, Italy\",\n  \"category\": \"tourist attractions\",\n  \"preferences\": [\"ancient history\", \"architecture\"],\n  \"radius_km\": 10\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weather",
+      "item": [
+        {
+          "name": "Current Weather (by city)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/weather/current?city=London&units=metric",
+              "host": ["{{base_url}}"],
+              "path": ["api", "weather", "current"],
+              "query": [
+                { "key": "city",  "value": "London" },
+                { "key": "units", "value": "metric" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Current Weather (by lat/lon)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/weather/current?lat=51.5074&lon=-0.1278&units=metric",
+              "host": ["{{base_url}}"],
+              "path": ["api", "weather", "current"],
+              "query": [
+                { "key": "lat",   "value": "51.5074" },
+                { "key": "lon",   "value": "-0.1278" },
+                { "key": "units", "value": "metric" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Forecast (by city)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/weather/forecast?city=Tokyo&units=metric",
+              "host": ["{{base_url}}"],
+              "path": ["api", "weather", "forecast"],
+              "query": [
+                { "key": "city",  "value": "Tokyo" },
+                { "key": "units", "value": "metric" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Forecast (by lat/lon)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/weather/forecast?lat=35.6762&lon=139.6503&units=metric",
+              "host": ["{{base_url}}"],
+              "path": ["api", "weather", "forecast"],
+              "query": [
+                { "key": "lat",   "value": "35.6762" },
+                { "key": "lon",   "value": "139.6503" },
+                { "key": "units", "value": "metric" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

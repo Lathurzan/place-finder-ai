@@ -1,71 +1,48 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Any, Dict
 
-from typing import Any, Dict
-
-# Try to use python-jose first, fall back to PyJWT if missing.
+# ── JWT library (python-jose preferred, PyJWT as fallback) ────
 try:
     from jose import JWTError, jwt as _jose_jwt  # type: ignore
     _jwt_lib = "jose"
 except Exception:
     try:
-        import jwt as _pyjwt  # PyJWT
-        from jwt import exceptions as _pyjwt_exceptions  # type: ignore
-
+        import jwt as _pyjwt  # type: ignore
         class JWTError(Exception):
             pass
-
         _jose_jwt = None
         _jwt_lib = "pyjwt"
     except Exception:
         _jose_jwt = None
         _pyjwt = None
         _jwt_lib = None
-try:
-    from passlib.context import CryptContext
-    _has_passlib = True
-except Exception:
-    CryptContext = None  # type: ignore
-    _has_passlib = False
-    import hashlib
-    import os
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from core.config import settings
 
-# ── Password hashing ──────────────────────────────────────────
-if _has_passlib:
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# ── Password hashing — uses bcrypt directly (no passlib) ──────
+# passlib 1.7.4 is incompatible with bcrypt 4.x, so we call
+# bcrypt directly.  This produces the standard $2b$ hashes that
+# are readable by any bcrypt-compatible tool.
+import bcrypt as _bcrypt
 
-    def hash_password(password: str) -> str:
-        return pwd_context.hash(password)
+def hash_password(password: str) -> str:
+    """Hash a plaintext password and return a $2b$ bcrypt string.
+    Passwords longer than 72 bytes are silently truncated (bcrypt limit).
+    """
+    return _bcrypt.hashpw(password.encode()[:72], _bcrypt.gensalt()).decode()
 
-    def verify_password(plain: str, hashed: str) -> bool:
-        return pwd_context.verify(plain, hashed)
-else:
-    # Minimal fallback using PBKDF2-HMAC (not as feature-rich as passlib)
-    def _pbkdf2_hash(password: str, salt: bytes | None = None) -> str:
-        salt = salt or os.urandom(16)
-        dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 100_000)
-        return salt.hex() + "$" + dk.hex()
-
-    def _pbkdf2_verify(password: str, full_hash: str) -> bool:
-        try:
-            salt_hex, dk_hex = full_hash.split("$")
-            salt = bytes.fromhex(salt_hex)
-            expected = bytes.fromhex(dk_hex)
-            test = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 100_000)
-            return test == expected
-        except Exception:
-            return False
-
-    def hash_password(password: str) -> str:
-        # Warning: used only when passlib isn't installed
-        return _pbkdf2_hash(password)
-
-    def verify_password(plain: str, hashed: str) -> bool:
-        return _pbkdf2_verify(plain, hashed)
+def verify_password(plain: str, hashed: str) -> bool:
+    """Return True if *plain* matches the stored bcrypt *hashed* value."""
+    if not plain or not hashed:
+        return False
+    try:
+        return _bcrypt.checkpw(plain.encode()[:72], hashed.encode())
+    except Exception:
+        # Hash in DB is in an unknown / legacy format — treat as wrong password.
+        return False
 
 
 # ── JWT ───────────────────────────────────────────────────────
