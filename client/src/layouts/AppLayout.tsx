@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import Topbar from "../components/TopBar";
 
@@ -8,39 +8,55 @@ type Props = {
 };
 
 const AppLayout = ({ children, onSearch }: Props) => {
-  // persisted collapsed state so layout doesn't reset across reloads
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try {
-      const raw = localStorage.getItem("sidebarCollapsed");
-      return raw ? JSON.parse(raw) : false;
-    } catch {
-      return false;
-    }
+    try { return JSON.parse(localStorage.getItem("sidebarCollapsed") ?? "false"); }
+    catch { return false; }
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed));
-    } catch {}
+    try { localStorage.setItem("sidebarCollapsed", JSON.stringify(collapsed)); }
+    catch {}
   }, [collapsed]);
 
+  // --- Force Tailwind dark mode to sync with localStorage or system ---
+  // --- Robust dark mode sync: always update <html> class on mount and on theme change ---
+  useEffect(() => {
+    function syncDarkClass() {
+      let theme = localStorage.getItem("theme");
+      if (!theme || theme === "system") {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+    syncDarkClass();
+    window.addEventListener("storage", syncDarkClass);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", syncDarkClass);
+    return () => {
+      window.removeEventListener("storage", syncDarkClass);
+      mq.removeEventListener("change", syncDarkClass);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-white">
-      {/* Sidebar for md+ (controlled) */}
-      <div className="hidden md:block md:fixed md:inset-y-0 md:left-0">
-        <SideBar collapsed={collapsed} onToggle={() => setCollapsed((s) => !s)} />
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-[#041226]">
+      {/* Sidebar — fixed width, full height */}
+      <div className="flex-shrink-0">
+        <SideBar collapsed={collapsed} onToggle={() => setCollapsed(s => !s)} />
       </div>
 
-      {/* Main area: animate margin when sidebar toggles */}
-      <div className={`transition-all duration-300 ${collapsed ? "md:ml-[68px]" : "md:ml-[240px]"}`}>
-        {/* Topbar (aligned with page content) */}
-        <div className="sticky top-0 z-30 bg-white/0">
-          <div className="max-w-[1400px] mx-auto px-4">
-            <Topbar onSearch={onSearch} />
-          </div>
+      {/* Right column: topbar + scrollable content */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <div className="flex-shrink-0 z-30">
+          <Topbar onSearch={onSearch} />
         </div>
-
-        <main>{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          {children}
+        </main>
       </div>
     </div>
   );

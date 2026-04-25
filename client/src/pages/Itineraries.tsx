@@ -222,18 +222,28 @@ function ItineraryCard({
 /* ─────────────────────────────────────────────
    Page
 ───────────────────────────────────────────── */
+
 export default function Itineraries() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<Status | "all">("all");
   const [search, setSearch] = useState("");
 
+  // Handler for Topbar search
+  const handleSearch = (value: string) => {
+    setSearch(value);
+  };
+
+  // Filtering logic: status + search (title, destination, tags)
   const filtered = MOCK.filter((item) => {
     const matchesStatus = filter === "all" || item.status === filter;
-    const matchesSearch =
-      search === "" ||
-      item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.destination.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
+    if (!matchesStatus) return false;
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return (
+      item.title.toLowerCase().includes(q) ||
+      item.destination.toLowerCase().includes(q) ||
+      item.tags.some((tag) => tag.toLowerCase().includes(q))
+    );
   });
 
   const counts = {
@@ -247,9 +257,8 @@ export default function Itineraries() {
   const totalPlaces = MOCK.reduce((s, i) => s + i.places, 0);
 
   return (
-    <AppLayout>
+    <AppLayout onSearch={handleSearch}>
       <div className="max-w-[1200px] mx-auto px-5 py-6 space-y-6">
-
         {/* ── Page header ── */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
@@ -297,27 +306,7 @@ export default function Itineraries() {
               </button>
             ))}
           </div>
-
-          {/* Search */}
-          <div className="flex items-center gap-2 flex-1 bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.07] rounded-xl px-3.5 h-[42px] focus-within:border-emerald-500/40 transition-colors">
-            <svg className="w-3.5 h-3.5 text-white/30 flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="9" cy="9" r="6" /><path d="M15 15l3 3" strokeLinecap="round" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search by title or destination…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 bg-transparent border-none outline-none text-[13px] text-white/80 placeholder-white/25"
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="text-gray-400 dark:text-white/25 hover:text-white/60 transition-colors">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M4 4l12 12M16 4L4 16" />
-                </svg>
-              </button>
-            )}
-          </div>
+          {/* No local search bar, search is global via Topbar */}
         </div>
 
         {/* ── Grid ── */}
@@ -340,17 +329,17 @@ export default function Itineraries() {
             <div>
               <p className="text-[15px] font-semibold text-white/60">No itineraries found</p>
               <p className="text-[13px] text-white/30 mt-1">
-                {search ? "Try a different search term" : "Create your first trip to get started"}
+                {search.trim()
+                  ? `No results match "${search}"`
+                  : "Create your first trip to get started"}
               </p>
             </div>
-            {!search && (
-              <button
-                onClick={() => navigate("/itineraries/new")}
-                className="px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[13px] font-semibold hover:bg-emerald-500/20 transition-all"
-              >
-                + Create itinerary
-              </button>
-            )}
+            <button
+              onClick={() => navigate("/itineraries/new")}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[13px] font-semibold hover:bg-emerald-500/20 transition-all"
+            >
+              + Create itinerary
+            </button>
           </div>
         )}
       </div>

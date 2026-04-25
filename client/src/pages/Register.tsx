@@ -1,10 +1,12 @@
 // src/pages/Register.tsx
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import registerImage from "../assets/registerLeftImage.jpg";
 import registerImage1 from "../assets/registerLeftImage1.jpg";
 import registerImage2 from "../assets/rigisterLeftImage2.webp";
 import heroBg from "../assets/heroSectionImage.jpg";
+
 
 export default function Register() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +16,11 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
+  const [showVerify, setShowVerify] = useState(false);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const navigate = useNavigate();
 
@@ -26,7 +33,6 @@ export default function Register() {
 
     setLoading(true);
     try {
-      // Use Vite environment variable if provided, otherwise default to localhost:8000
       const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://127.0.0.1:8000";
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
@@ -37,16 +43,12 @@ export default function Register() {
       let data: any = {};
       try {
         data = await res.json();
-      } catch (e) {
-        // non-json response
-      }
+      } catch (e) {}
 
       if (!res.ok) {
-        // extract helpful error message from common FastAPI response shapes
         const extractMessage = (d: any) => {
           if (!d) return `Registration failed (${res.status})`;
           if (typeof d === "string") return d;
-          // FastAPI validation errors are typically an array under detail
           if (Array.isArray(d)) return d.map((it: any) => it?.msg || JSON.stringify(it)).join("; ");
           if (Array.isArray(d?.detail)) {
             return d.detail.map((it: any) => {
@@ -57,223 +59,186 @@ export default function Register() {
           }
           if (typeof d.detail === "string") return d.detail;
           if (d?.message) return d.message;
-          // fallback to stringifying the object
           try { return JSON.stringify(d); } catch (e) { return String(d); }
         };
 
         const message = extractMessage(data);
-        console.error("Registration error", res.status, data);
         alert(message);
         return;
       }
 
-      // Expected response: { access_token, token_type, user }
-      if (data?.access_token) {
-        try {
-          localStorage.setItem("pf_token", data.access_token);
-          localStorage.setItem("pf_user", JSON.stringify(data.user || {}));
-        } catch (err) {
-          // ignore storage errors
-        }
-        // Navigate to home (existing route)
-        navigate("/home");
+      if (data?.email) {
+        setRegisteredEmail(data.email);
+        setShowVerify(true);
       } else {
         alert("Unexpected response from server");
       }
     } catch (err) {
-      console.error(err);
       alert("Network error while registering. Check your connection and backend.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Live validation helpers
   const passwordsMatch = form.password === form.confirmPassword;
   const showPasswordError = form.confirmPassword.length > 0 && !passwordsMatch;
 
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifyLoading(true);
+    setVerifyError("");
+    try {
+      const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE}/api/auth/verify-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: registeredEmail, code: verifyCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVerifyError(data.detail || data.message || "Verification failed");
+        return;
+      }
+      alert("Email verified! You can now log in.");
+      setShowVerify(false);
+      navigate("/login");
+    } catch (err) {
+      setVerifyError("Network error. Try again.");
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center text-white px-4 py-8" style={{ backgroundColor: "var(--bg)" }}>
-        <div className="w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row" style={{ background: "var(--bg2)", border: "1px solid", borderColor: "var(--card-border)" }}>
-
-        {/* ── Left: Image fan ── */}
-        <div
-          className="hidden md:flex md:w-1/2 items-center justify-center p-8 relative"
-          style={{
-            backgroundImage: `url(${heroBg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          {/* Overlays */}
-          <div className="absolute inset-0 bg-[#060c18]/50 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/8 to-indigo-500/8 pointer-events-none" />
-
-          {/* Fan wrapper — all 3 cards positioned inside this box */}
-          <div className="relative z-10 w-full" style={{ height: 420 }}>
-
-            {/* Card LEFT — rotated -14°, shifted left */}
-            <div
-              className="absolute rounded-2xl overflow-hidden shadow-xl border border-white/10"
-              style={{
-                marginTop: 130,
-                width: "75%",
-                aspectRatio: "4 / 3",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%) rotate(-14deg) translateX(-22%)",
-                zIndex: 1,
-              }}
-            >
-              <img src={registerImage} alt="Travel A" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            </div>
-
-            {/* Card RIGHT — rotated +14°, shifted right */}
-            <div
-              className="absolute rounded-2xl overflow-hidden shadow-xl border border-white/10"
-              style={{
-                marginTop: -60,
-                marginLeft: 40,
-                width: "75%",
-                aspectRatio: "4 / 3",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%) rotate(14deg) translateX(22%)",
-                zIndex: 2,
-              }}
-            >
-              <img src={registerImage2} alt="Travel C" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            </div>
-
-            {/* Card CENTER — flat, on top */}
-            <div
-              className="absolute rounded-2xl overflow-hidden shadow-2xl border border-white/20"
-              style={{
-                marginTop:-140,
-                marginLeft: -50,
-                width: "75%",
-                aspectRatio: "4 / 3",
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%) rotate(-10deg)",
-                zIndex: 3,
-              }}
-            >
-              <img src={registerImage1} alt="Travel B" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            </div>
-          </div>
-
-          {/* Caption */}
-          <p className="absolute bottom-6 left-0 right-0 text-center text-xs text-white/40 tracking-widest uppercase z-10">
-            Discover the world with AI
-          </p>
+      <div className="flex flex-col md:flex-row bg-gray-900 rounded-2xl shadow-2xl overflow-hidden w-full max-w-4xl">
+        {/* Left image section */}
+        <div className="hidden md:block md:w-1/2 relative">
+          <img src={registerImage} alt="Register" className="object-cover w-full h-full" />
+          <img src={registerImage1} alt="Decor 1" className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-white shadow-lg" />
+          <img src={registerImage2} alt="Decor 2" className="absolute bottom-4 right-4 w-20 h-20 rounded-full border-4 border-white shadow-lg" />
         </div>
-
-        {/* ── Right: Form ── */}
-        <div className="w-full md:w-1/2 flex items-center justify-center p-8">
-          <div className="w-full max-w-md bg-transparent border border-white/8 rounded-2xl p-8 relative">
-            {/* Back button: gray round with left arrow */}
-            <Link
-              to="/"
-              aria-label="Back to landing"
-              title="Back to landing"
-              className="absolute top-4 left-4 w-10 h-10 rounded-full bg-gray-700/60 text-white flex items-center justify-center hover:bg-gray-600 transition"
+        {/* Right form section */}
+        <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
+          <h1 className="text-3xl font-bold mb-2 text-emerald-400">Create your account</h1>
+          <p className="text-gray-400 mb-6">Find the best places with AI-powered search.</p>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              className="bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className="bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+              className="bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              required
+              minLength={6}
+            />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              value={form.confirmPassword}
+              onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
+              className={`bg-gray-800 border rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 ${showPasswordError ? 'border-red-500' : 'border-gray-700'}`}
+              required
+              minLength={6}
+            />
+            {showPasswordError && (
+              <div className="text-red-400 text-xs">Passwords do not match</div>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 rounded transition"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <Link to="/" className="flex items-center gap-2 mb-6 justify-center">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-              <span className="font-bold text-sm">Place Finder AI</span>
-            </Link>
-
-            <h1 className="text-2xl font-bold mb-2">Create your account</h1>
-            <p className="text-sm text-gray-400 mb-6">Start exploring with AI</p>
-
-            {/* Google OAuth */}
-            <button className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white text-black font-medium mb-4 hover:bg-gray-200 transition">
-              <svg className="w-5 h-5" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
-                <path d="M533.5 278.4c0-18.5-1.5-36.3-4.3-53.6H272v101.3h146.9c-6.3 34-25 62.8-53.5 82.1v68.2h86.3c50.4-46.4 81.8-114.9 81.8-198z" fill="#4285F4" />
-                <path d="M272 544.3c72.6 0 133.6-24.1 178.1-65.4l-86.3-68.2c-24 16.1-54.7 25.6-91.8 25.6-70.6 0-130.4-47.6-151.8-111.6H32.3v69.9C76.6 483.6 169.5 544.3 272 544.3z" fill="#34A853" />
-                <path d="M120.2 328.5c-10.5-31.1-10.5-64.7 0-95.8V162.8H32.3c-39.6 79.2-39.6 173.6 0 252.8l87.9-87.1z" fill="#FBBC05" />
-                <path d="M272 107.7c38.9 0 73.9 13.4 101.5 39.7l76.1-76.1C405.6 24.1 344.6 0 272 0 169.5 0 76.6 60.7 32.3 162.8l87.9 69.9C141.6 155.3 201.4 107.7 272 107.7z" fill="#EA4335" />
-              </svg>
-              Sign up with Google
+              {loading ? "Registering..." : "Register"}
             </button>
+          </form>
+          <div className="mt-4 text-sm text-gray-400 text-center">
+            Already have an account?{' '}
+            <Link to="/login" className="text-emerald-400 hover:underline">Log in</Link>
+          </div>
+        </div>
+      </div>
 
-            <div className="flex items-center gap-4 my-6">
-  <div className="flex-1 h-px bg-white/10" />
-  
-  <span className="text-xs text-gray-400 whitespace-nowrap">
-    or
-  </span>
-
-  <div className="flex-1 h-px bg-white/10" />
-</div>
-
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Modal for email verification */}
+      {showVerify && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white text-gray-900 rounded-2xl shadow-xl p-8 w-full max-w-xs relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowVerify(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 className="text-lg font-bold mb-2 text-center">Verify your email</h2>
+            <p className="text-sm text-gray-600 mb-4 text-center">
+              Enter the 6-digit code sent to <b>{registeredEmail}</b>
+            </p>
+            <form onSubmit={handleVerify} className="flex flex-col gap-3">
               <input
                 type="text"
-                placeholder="Full name"
+                value={verifyCode}
+                onChange={e => setVerifyCode(e.target.value)}
+                placeholder="Verification code"
+                className="border px-3 py-2 rounded text-sm"
                 required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="px-4 py-3 rounded-xl bg-[#111f35] border border-white/10 text-sm outline-none focus:border-emerald-400"
+                maxLength={6}
               />
-              <input
-                type="email"
-                placeholder="Email address"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="px-4 py-3 rounded-xl bg-[#111f35] border border-white/10 text-sm outline-none focus:border-emerald-400"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className={`px-4 py-3 rounded-xl bg-[#111f35] border ${showPasswordError ? 'border-red-500' : 'border-white/10'} text-sm outline-none focus:border-emerald-400`}
-                aria-invalid={showPasswordError}
-              />
-              <input
-                type="password"
-                placeholder="Re-enter password"
-                required
-                value={form.confirmPassword}
-                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                className={`px-4 py-3 rounded-xl bg-[#111f35] border ${showPasswordError ? 'border-red-500' : 'border-white/10'} text-sm outline-none focus:border-emerald-400`}
-                aria-invalid={showPasswordError}
-              />
-
-              {showPasswordError && (
-                <p className="text-xs text-red-400 mt-1">Passwords do not match</p>
-              )}
               <button
                 type="submit"
-                disabled={loading}
-                className="mt-2 py-3 rounded-xl bg-emerald-400 text-[#022c22] font-semibold hover:bg-emerald-300 transition disabled:opacity-60"
+                disabled={verifyLoading}
+                className="bg-emerald-500 text-white py-2 rounded font-semibold"
               >
-                {loading ? "Creating..." : "Create account"}
+                {verifyLoading ? "Verifying..." : "Verify"}
               </button>
+              {verifyError && <div className="text-red-500 text-xs text-center">{verifyError}</div>}
             </form>
-
-            <p className="text-center text-sm text-gray-400 mt-6">
-              Already have an account?{" "}
-              <Link to="/login" className="text-emerald-400 hover:text-emerald-300 transition-colors duration-150 font-medium">
-                Sign in
-              </Link>
+            <p className="text-xs text-gray-400 mt-4 text-center">
+              Didn&apos;t get the code? Check your spam folder or{" "}
+              <button
+                className="text-emerald-500 underline"
+                type="button"
+                onClick={async () => {
+                  setVerifyError("");
+                  setVerifyLoading(true);
+                  try {
+                    const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://127.0.0.1:8000";
+                    await fetch(`${API_BASE}/api/auth/register`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: form.name, email: registeredEmail, password: form.password }),
+                    });
+                    setVerifyError("Verification code resent!");
+                  } catch {
+                    setVerifyError("Failed to resend code.");
+                  } finally {
+                    setVerifyLoading(false);
+                  }
+                }}
+              >
+                resend
+              </button>
+              .
             </p>
           </div>
         </div>
-
-      </div>
+      )}
     </div>
   );
 }
