@@ -1,85 +1,54 @@
-import requests
+# backend/services/geocode_service.py
+import httpx
 
 BASE_URL = "https://nominatim.openstreetmap.org"
+HEADERS  = {"User-Agent": "place-finder-ai (lathurzan project)"}
 
-HEADERS = {
-    "User-Agent": "place-finder-ai (lathurzan project)"
-}
-
-def get_coordinates(query: str):
-    """
-    Convert place name → lat/lon
-    """
-    url = f"{BASE_URL}/search"
-    params = {
-        "q": query,
-        "format": "json",
-        "limit": 1
-    }
-
-    response = requests.get(url, params=params, headers=HEADERS)
-
-    if response.status_code != 200:
+async def get_coordinates(query: str):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{BASE_URL}/search",
+            params={"q": query, "format": "json", "limit": 1},
+            headers=HEADERS,
+        )
+    if r.status_code != 200:
         return None
-
-    data = response.json()
-
+    data = r.json()
     if not data:
         return None
-
     return {
-        "lat": float(data[0]["lat"]),
-        "lon": float(data[0]["lon"]),
-        "display_name": data[0]["display_name"]
+        "lat":          float(data[0]["lat"]),
+        "lon":          float(data[0]["lon"]),
+        "display_name": data[0]["display_name"],
     }
 
 
-def reverse_geocode(lat: float, lon: float):
-    """
-    Convert lat/lon → place name
-    """
-    url = f"{BASE_URL}/reverse"
-    params = {
-        "lat": lat,
-        "lon": lon,
-        "format": "json"
-    }
-
-    response = requests.get(url, params=params, headers=HEADERS)
-
-    if response.status_code != 200:
+async def reverse_geocode(lat: float, lon: float):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{BASE_URL}/reverse",
+            params={"lat": lat, "lon": lon, "format": "json"},
+            headers=HEADERS,
+        )
+    if r.status_code != 200:
         return None
-
-    data = response.json()
-
-    return {
-        "display_name": data.get("display_name")
-    }
+    return {"display_name": r.json().get("display_name")}
 
 
-def search_places(query: str):
-    """
-    Return multiple matching places
-    """
-    url = f"{BASE_URL}/search"
-    params = {
-        "q": query,
-        "format": "json",
-        "limit": 5
-    }
-
-    response = requests.get(url, params=params, headers=HEADERS)
-
-    if response.status_code != 200:
+async def search_places(query: str, limit: int = 8):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{BASE_URL}/search",
+            params={"q": query, "format": "json", "limit": limit},
+            headers=HEADERS,
+        )
+    if r.status_code != 200:
         return []
-
-    results = response.json()
-
     return [
         {
-            "name": place["display_name"],
-            "lat": float(place["lat"]),
-            "lon": float(place["lon"])
+            "name": p["display_name"],
+            "lat":  float(p["lat"]),
+            "lon":  float(p["lon"]),
         }
-        for place in results
+        for p in r.json()
     ]

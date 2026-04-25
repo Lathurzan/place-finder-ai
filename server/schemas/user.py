@@ -14,6 +14,7 @@ class UserLogin(BaseModel):
     password: str
 
 
+
 class UserResponse(BaseModel):
     id:             int
     name:           str
@@ -22,6 +23,7 @@ class UserResponse(BaseModel):
     avatar_url:     Optional[str]
     preferred_lang: str
     created_at:     datetime
+    email_verified: Optional[bool] = False
 
     model_config = {"from_attributes": True}
 

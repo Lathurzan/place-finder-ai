@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from core.database import Base
 
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -17,6 +18,9 @@ class User(Base):
     preferred_lang = Column(String(10), default="en")
     plan           = Column(String(20), default="starter")
     is_active      = Column(Boolean, default=True)
+    is_admin       = Column(Boolean, default=False)
+    email_verified = Column(Boolean, default=False)
+    verification_code = Column(String(10), nullable=True)
     created_at     = Column(DateTime(timezone=True), server_default=func.now())
     updated_at     = Column(DateTime(timezone=True), server_default=func.now(),
                             onupdate=func.now())
