@@ -15,8 +15,40 @@ from sqlalchemy import select
 from schemas.user import UserRegister, UserLogin, TokenResponse, UserResponse
 from models.user import User
 from core.security import hash_password, verify_password, create_access_token
+from core.security import get_current_user
+from pydantic import BaseModel
 
 router = APIRouter()
+
+
+class ChangePassword(BaseModel):
+	current_password: str
+	new_password: str
+
+
+@router.post("/change-password", tags=["Auth"])
+async def change_password(
+	body: ChangePassword,
+	db: AsyncSession = Depends(get_db),
+	current_user: User = Depends(get_current_user),
+):
+	# Verify current password
+	if not verify_password(body.current_password, current_user.password_hash):
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Current password is incorrect")
+
+	# Validate new password minimally (length >= 6)
+	if not body.new_password or len(body.new_password) < 6:
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be at least 6 characters long")
+
+	# Update password hash
+	try:
+		current_user.password_hash = hash_password(body.new_password)
+		db.add(current_user)
+		await db.commit()
+		return {"message": "Password updated"}
+	except Exception as e:
+		await db.rollback()
+		raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/register", tags=["Auth"])
 async def register(user_data: UserRegister):

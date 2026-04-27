@@ -1,0 +1,255 @@
+{
+  "info": {
+    "name": "Place Finder AI - Tests",
+    "_postman_id": "placefinderai-tests-0000-0000-0000",
+    "description": "Collection of test requests with assertions for Place Finder AI backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// ensure api_base env exists",
+          "if (!pm.environment.get('api_base')) {",
+          "  pm.environment.set('api_base','http://127.0.0.1:8000');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "AI Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_base}}/api/ai/health",
+          "host": ["{{api_base}}"],
+          "path": ["api","ai","health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Body contains status or health', () => {",
+              "  const b = pm.response.json();",
+              "  pm.expect(b).to.be.an('object');",
+              "  pm.expect(b.status || b.health || b.ok).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Generate (text)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"Suggest a 3-day itinerary for Kyoto for a first-time visitor.\"\n}"
+        },
+        "url": { "raw": "{{api_base}}/api/ai/generate", "path":["api","ai","generate"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Response shape', () => {",
+              "  const b = pm.response.json();",
+              "  pm.expect(b).to.be.an('object');",
+              "  pm.expect(b.reply || b.itinerary || b.error || b.success).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Chat",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "body": { "mode":"raw", "raw": "{ \"message\": \"What are the top sights in Paris?\" }" },
+        "url": { "raw": "{{api_base}}/api/ai/chat", "path":["api","ai","chat"] }
+      },
+      "event": [
+        {
+          "listen":"test",
+          "script": {
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Has reply or success', () => {",
+              "  const b = pm.response.json();",
+              "  pm.expect(b).to.be.an('object');",
+              "  pm.expect(b.reply !== undefined || b.success !== undefined || b.error !== undefined).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Analyze Image",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "body": { "mode":"raw", "raw": "{ \"image_data\": \"iVBORw0KGgoAAAANSUhEUgAAAAUA...\" }" },
+        "url": { "raw": "{{api_base}}/api/ai/analyze-image", "path":["api","ai","analyze-image"] }
+      },
+      "event": [
+        {
+          "listen":"test",
+          "script": {
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 or 502', () => pm.expect([200,502]).to.include(pm.response.code));",
+              "pm.test('If 200, analysis present', () => {",
+              "  if (pm.response.code === 200) {",
+              "    const b = pm.response.json();",
+              "    pm.expect(b.analysis || b.response || b.result || b.text).to.exist;",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Itinerary",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "body": { "mode":"raw", "raw": "{ \"destination\":\"Tokyo\",\"num_days\":3 }" },
+        "url": { "raw": "{{api_base}}/api/ai/itinerary", "path":["api","ai","itinerary"] }
+      },
+      "event":[
+        {
+          "listen":"test",
+          "script": {
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Has itinerary object when present', () => {",
+              "  const b = pm.response.json();",
+              "  if (b.itinerary) pm.expect(b.itinerary).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Recommend (places)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "body": { "mode":"raw", "raw": "{ \"location\":\"Glasgow\" }" },
+        "url": { "raw": "{{api_base}}/api/ai/recommend", "path":["api","ai","recommend"] }
+      },
+      "event":[
+        {
+          "listen":"test",
+          "script":{
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Contains places or recommendations', () => {",
+              "  const b = pm.response.json();",
+              "  pm.expect(b.places || b.recommendations || b.success).to.exist;",
+              "  if (b.places) pm.expect(b.places).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ML CSV Recommendations",
+      "request": {
+        "method":"GET",
+        "header": [],
+        "url": {
+          "raw":"{{api_base}}/api/ml/recommendations-csv?top_n=5",
+          "path":["api","ml","recommendations-csv"]
+        }
+      },
+      "event":[
+        {
+          "listen":"test",
+          "script":{
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Has recommendations array', () => {",
+              "  const b = pm.response.json();",
+              "  pm.expect(b).to.be.an('object');",
+              "  pm.expect(b.recommendations).to.be.an('array');",
+              "});",
+              "pm.test('Count matches array length', () => {",
+              "  const b = pm.response.json();",
+              "  pm.expect(b.count).to.eql((b.recommendations || []).length);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Itineraries",
+      "request": {
+        "method":"GET",
+        "header": [],
+        "url": { "raw":"{{api_base}}/api/itineraries", "path":["api","itineraries"] }
+      },
+      "event":[
+        {
+          "listen":"test",
+          "script":{
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 or 404', () => pm.expect([200,404]).to.include(pm.response.code));",
+              "pm.test('If 200, returns array', () => {",
+              "  if (pm.response.code === 200) pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Bookmarks (user 1)",
+      "request": {
+        "method":"GET",
+        "header": [],
+        "url": { "raw":"{{api_base}}/api/bookmarks?user_id=1", "path":["api","bookmarks"] }
+      },
+      "event":[
+        {
+          "listen":"test",
+          "script":{
+            "type":"text/javascript",
+            "exec":[
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Body is array', () => {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

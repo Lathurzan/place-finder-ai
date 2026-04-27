@@ -42,6 +42,11 @@ async def get_bookmarks(user_id: int = 1, db: AsyncSession = Depends(get_db)):
                 b.note,
                 b.created_at,
                 p.name,
+                -- extract lat/lon from PostGIS geography POINT
+                ST_Y(p.location::geometry) AS lat,
+                ST_X(p.location::geometry) AS lon,
+                -- also return a textual WKT location for backward compatibility
+                ST_AsText(p.location::geometry) AS location,
                 p.city,
                 p.country,
                 p.rating,
