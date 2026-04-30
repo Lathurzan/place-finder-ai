@@ -12,6 +12,7 @@ import Explore from "./pages/Explore";
 import Bookmarks from "./pages/Bookmarks";
 import Success from "./pages/Success";
 import Checkout from "./pages/Checkout";
+import Recommendations from "./pages/Recommendations";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -28,6 +29,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/bookmarks" element={<Bookmarks />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/success" element={<Success />} />
+  <Route path="/recommendations" element={<Recommendations />} />
     </Routes>
   );
 };

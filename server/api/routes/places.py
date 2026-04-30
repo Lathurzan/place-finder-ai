@@ -14,7 +14,11 @@ from services.geocode_service import (
     get_coordinates,
     reverse_geocode,
     search_places,
+    async_get_coordinates,
+    async_reverse_geocode,
+    async_search_places,
 )
+from starlette.concurrency import run_in_threadpool
 from services.opentripmap_service import (
     get_popular_destinations,
     search_places_otm,
@@ -22,6 +26,32 @@ from services.opentripmap_service import (
 
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")
+
+
+# Dependency: provide an async geocode service object that can be overridden in tests
+def _default_geocode_service():
+    class GeoService:
+        async def get_coordinates(self, query: str):
+            # Call the module-level sync helper in a thread so tests that
+            # patch `api.routes.places.get_coordinates` will be used.
+            return await run_in_threadpool(get_coordinates, query)
+
+        async def reverse_geocode(self, lat: float, lon: float):
+            return await run_in_threadpool(reverse_geocode, lat, lon)
+
+        async def search_places(self, query: str, limit: int = 8):
+            return await run_in_threadpool(search_places, query, limit)
+
+    return GeoService()
+
+
+def get_geocode_service():
+    """Dependency provider returning the production geocode service.
+
+    Tests can override this dependency using FastAPI's dependency_overrides to
+    inject mocks that return deterministic data.
+    """
+    return _default_geocode_service()
 
 # ── Category mapping: frontend → DB ──────────────────────────────────────────
 _CAT_MAP = {
@@ -97,24 +127,27 @@ async def explore_places(
 #  Geocoding endpoints (unchanged)
 # ─────────────────────────────────────────────────────────────────────────────
 @router.get("/search")
-async def search_location(q: str = Query(..., min_length=1)):
+async def search_location(
+    q: str = Query(..., min_length=1), geocode=Depends(get_geocode_service)
+):
     logger.info(f"[SEARCH] Geocoding query: {q}")
-    result = await get_coordinates(q)
+    result = await geocode.get_coordinates(q)
     if not result:
         logger.warning(f"[SEARCH] No result for: {q}")
-        return {}
+        return {"error": "not found"}
+
     # Ensure consistent marker format
     return {
         "lat": float(result.get("lat", 0)),
         "lon": float(result.get("lon", 0)),
-        "name": result.get("display_name", q)
+        "name": result.get("display_name", q),
     }
 
 
 @router.get("/search-multiple")
-async def search_multiple(q: str = Query(..., min_length=1)):
+async def search_multiple(q: str = Query(..., min_length=1), geocode=Depends(get_geocode_service)):
     logger.info(f"[SEARCH-MULTIPLE] Multi-geocode: {q}")
-    results = await search_places(q)
+    results = await geocode.search_places(q)
     if not results:
         logger.info(f"[SEARCH-MULTIPLE] No results for: {q}")
         return []
@@ -123,16 +156,16 @@ async def search_multiple(q: str = Query(..., min_length=1)):
         {
             "lat": float(r.get("lat", 0)),
             "lon": float(r.get("lon", 0)),
-            "name": r.get("display_name", r.get("name", q))
+            "name": r.get("name", r.get("display_name", q)),
         }
         for r in results
     ]
 
 
 @router.get("/reverse")
-async def reverse(lat: float = Query(...), lon: float = Query(...)):
+async def reverse(lat: float = Query(...), lon: float = Query(...), geocode=Depends(get_geocode_service)):
     logger.info(f"[REVERSE] Reverse geocode: {lat}, {lon}")
-    result = await reverse_geocode(lat, lon)
+    result = await geocode.reverse_geocode(lat, lon)
     if not result:
         logger.warning(f"[REVERSE] No reverse result for: {lat},{lon}")
         return {}
@@ -140,5 +173,5 @@ async def reverse(lat: float = Query(...), lon: float = Query(...)):
     return {
         "lat": float(result.get("lat", lat)),
         "lon": float(result.get("lon", lon)),
-        "name": result.get("display_name", "")
+        "name": result.get("display_name", ""),
     }

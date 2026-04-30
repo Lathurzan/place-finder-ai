@@ -9,6 +9,7 @@ type Props = {
 };
 
 const PlaceCard = ({ name, description, category, rating, country, imageUrl, onClick }: Props) => {
+  const LOCAL_FALLBACK = "/images/fallback.svg";
   return (
     <div
       onClick={onClick}
@@ -26,7 +27,23 @@ const PlaceCard = ({ name, description, category, rating, country, imageUrl, onC
       {/* Cover image or emoji fallback */}
       <div className="h-36 bg-gradient-to-br from-gray-50 to-white dark:from-white/[0.05] dark:to-white/[0.01] flex items-center justify-center text-5xl select-none border-b border-gray-100 dark:border-white/[0.06] relative overflow-hidden">
         {imageUrl ? (
-          <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+          <img
+            src={imageUrl}
+            alt={name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              try {
+                if (!target.dataset.attemptedFallback) {
+                  target.dataset.attemptedFallback = '1';
+                  const nameSafe = encodeURIComponent(name || 'travel');
+                  const sourceFallback = `https://source.unsplash.com/800x600/?${nameSafe}`;
+                  if (target.src !== sourceFallback) { target.src = sourceFallback; return; }
+                }
+              } catch {}
+              target.src = LOCAL_FALLBACK;
+            }}
+          />
         ) : (
           <span>🗺️</span>
         )}

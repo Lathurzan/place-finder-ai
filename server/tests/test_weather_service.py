@@ -17,7 +17,7 @@ from services.weather_service import (
 )
 
 
-# ── Shared fake payloads ──────────────────────────────────────────────────────
+#  Shared fake payloads 
 
 FAKE_CURRENT = {
     "weather": [{"description": "light rain", "icon": "10d"}],
@@ -49,7 +49,7 @@ def _async_mock_response(json_data, status_code=200):
     return client_mock
 
 
-# ── normalize_current ─────────────────────────────────────────────────────────
+#  normalize_current
 
 class TestNormalizeCurrent:
     def test_extracts_temp(self):
@@ -82,7 +82,7 @@ class TestNormalizeCurrent:
         assert norm["description"] is None
 
 
-# ── get_current_weather ───────────────────────────────────────────────────────
+#  get_current_weather 
 
 class TestGetCurrentWeather:
     def test_returns_json_on_success(self, monkeypatch):
@@ -119,7 +119,7 @@ class TestGetCurrentWeather:
         asyncio.run(run())
 
 
-# ── get_current_weather_by_city ───────────────────────────────────────────────
+#  get_current_weather_by_city
 
 class TestGetCurrentWeatherByCity:
     def test_passes_city_param(self, monkeypatch):
@@ -145,7 +145,7 @@ class TestGetCurrentWeatherByCity:
         asyncio.run(run())
 
 
-# ── geocode_city ──────────────────────────────────────────────────────────────
+#  geocode_city
 
 class TestGeocodeCity:
     def test_returns_first_result(self, monkeypatch):

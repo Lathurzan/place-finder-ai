@@ -34,7 +34,7 @@ def _mock_response(json_data, status_code=200):
     return mock
 
 
-# ── get_coordinates ───────────────────────────────────────────────────────────
+#  get_coordinates 
 
 class TestGetCoordinates:
     def test_returns_lat_lon_and_name(self):
@@ -71,7 +71,7 @@ class TestGetCoordinates:
         assert params["q"] == "Tokyo"
 
 
-# ── reverse_geocode ───────────────────────────────────────────────────────────
+#  reverse_geocode
 
 class TestReverseGeocode:
     def test_returns_display_name(self):
@@ -91,8 +91,7 @@ class TestReverseGeocode:
         assert result is None
 
 
-# ── search_places ─────────────────────────────────────────────────────────────
-
+# search_places 
 class TestSearchPlaces:
     def test_returns_list_of_places(self):
         with patch("services.geocode_service.requests.get",

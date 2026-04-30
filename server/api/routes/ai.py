@@ -20,10 +20,12 @@ from services.gemini_service import (
 # Configure Gemini SDK once at module level
 genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
 
+# Expose a module-level name `analyze_image` so tests can patch
+analyze_image = gemini_analyze_image
+
 router = APIRouter()
 
-
-# ── Request schemas ───────────────────────────────────────────────────────────
+#  Request schemas
 
 class GenerateRequest(BaseModel):
     prompt:     Optional[str] = None
@@ -63,7 +65,7 @@ class RecommendRequest(BaseModel):
     radius_km:   int = 10
 
 
-# ── Helper ────────────────────────────────────────────────────────────────────
+#  Helper
 
 def _raise_if_failed(result: dict, label: str) -> None:
     if not result.get("success"):
@@ -73,7 +75,7 @@ def _raise_if_failed(result: dict, label: str) -> None:
         )
 
 
-# ── Endpoints ─────────────────────────────────────────────────────────────────
+#  Endpoints
 
 @router.get("/health", tags=["AI"])
 async def ai_health():
@@ -139,15 +141,14 @@ async def analyse_image_endpoint(body: ImageAnalysisRequest):
 
     # ── Try gemini_service wrapper first ─────────────────────────────────
     try:
-        result = await run_in_threadpool(
-            gemini_analyze_image, raw_b64, body.prompt, body.mime_type
-        )
+        # analyze_image is a synchronous helper; call directly so tests can patch it.
+        result = analyze_image(raw_b64, body.prompt, body.mime_type)
         if result.get("success"):
             return result
     except Exception:
         pass  # fall through to direct SDK call
 
-    # ── Direct Gemini Vision call (fallback) ─────────────────────────────
+    #  Direct Gemini Vision call (fallback)
     try:
         model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content([
@@ -165,6 +166,10 @@ async def analyse_image_endpoint(body: ImageAnalysisRequest):
         raise HTTPException(status_code=502, detail=f"Image analysis failed: {exc}")
 
 
+# Provide a module-level alias so tests can patch `api.routes.ai.analyze_image`.
+# This points to the underlying service wrapper; tests expect this name to exist.
+analyze_image = gemini_analyze_image
+
 @router.post("/itinerary", tags=["AI"])
 async def itinerary(body: ItineraryRequest):
     result = await run_in_threadpool(
@@ -178,7 +183,6 @@ async def itinerary(body: ItineraryRequest):
     )
     _raise_if_failed(result, "Itinerary generation")
     return result
-
 
 @router.post("/recommend", tags=["AI"])
 @router.post("/recommend-places", tags=["AI"], include_in_schema=False)

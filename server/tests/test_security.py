@@ -7,7 +7,7 @@ import pytest
 from core.security import hash_password, verify_password, create_access_token
 
 
-# ── Password hashing ──────────────────────────────────────────────────────────
+#  Password hashing 
 
 class TestHashPassword:
     def test_returns_bcrypt_prefix(self):

@@ -22,8 +22,7 @@ from services.image_service import (
 )
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
+#  Helpers 
 def _make_jpeg(width=200, height=150) -> bytes:
     img = Image.new("RGB", (width, height), color=(100, 149, 237))
     buf = io.BytesIO()
@@ -45,7 +44,7 @@ FAKE_GEMINI_RESULT = {
 }
 
 
-# ── validate_image_file ───────────────────────────────────────────────────────
+#  validate_image_file
 
 class TestValidateImageFile:
     def test_valid_jpeg_returns_mime(self):
@@ -71,7 +70,7 @@ class TestValidateImageFile:
                 validate_image_file(_make_jpeg(), "big.jpg")
 
 
-# ── get_image_metadata ────────────────────────────────────────────────────────
+#  get_image_metadata
 
 class TestGetImageMetadata:
     def test_jpeg_metadata(self):
@@ -89,7 +88,7 @@ class TestGetImageMetadata:
         assert meta["format"] == "PNG"
 
 
-# ── resize_image ──────────────────────────────────────────────────────────────
+#  resize_image
 
 class TestResizeImage:
     def test_large_image_is_resized(self):
@@ -116,7 +115,7 @@ class TestResizeImage:
         assert isinstance(result[1], str)
 
 
-# ── Base64 helpers ────────────────────────────────────────────────────────────
+#  Base64 helpers
 
 class TestBase64Helpers:
     def test_bytes_to_base64_roundtrip(self):
@@ -144,7 +143,7 @@ class TestBase64Helpers:
         assert len(decoded) == len(data)
 
 
-# ── analyse_uploaded_image ────────────────────────────────────────────────────
+#  analyse_uploaded_image
 
 class TestAnalyseUploadedImage:
     def test_success_path(self):

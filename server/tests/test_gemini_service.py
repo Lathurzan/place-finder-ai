@@ -40,7 +40,7 @@ def _make_jpeg_b64() -> str:
     return _b64.b64encode(buf.getvalue()).decode()
 
 
-# ── _strip_fences ─────────────────────────────────────────────────────────────
+#  _strip_fences 
 
 class TestStripFences:
     def test_removes_json_fence(self):

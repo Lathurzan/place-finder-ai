@@ -1,0 +1,605 @@
+{
+  "info": {
+    "name": "place-finder-ai - full test collection",
+    "_postman_id": "place-finder-ai-full-tests",
+    "description": "Generated collection: 124 requests covering auth, AI, geocoding, weather, places, payments, user profile and health checks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Auth: Register (success)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"email\": \"alice@example.com\", \"password\": \"StrongPass123\", \"name\": \"Alice\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/register" }
+      }
+    },
+    {
+      "name": "2 - Auth: Register (missing fields)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ }" },
+        "url": { "raw": "{{base_url}}/api/auth/register" }
+      }
+    },
+    {
+      "name": "3 - Auth: Register (duplicate email)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"email\": \"alice@example.com\", \"password\": \"StrongPass123\", \"name\": \"Alice\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/register" }
+      }
+    },
+    {
+      "name": "4 - Auth: Login (success)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"email\": \"alice@example.com\", \"password\": \"StrongPass123\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/login" }
+      }
+    },
+    {
+      "name": "5 - Auth: Login (invalid credentials)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"email\": \"alice@example.com\", \"password\": \"WrongPass\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/login" }
+      }
+    },
+    {
+      "name": "6 - Auth: Token refresh",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": { "raw": "{{base_url}}/api/auth/refresh" }
+      }
+    },
+    {
+      "name": "7 - Auth: Logout",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "url": { "raw": "{{base_url}}/api/auth/logout" }
+      }
+    },
+    {
+      "name": "8 - Auth: Password reset request",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"email\": \"alice@example.com\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/password-reset" }
+      }
+    },
+    {
+      "name": "9 - Auth: Password reset confirm",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"token\": \"<token>\", \"new_password\": \"NewPass123\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/password-reset/confirm" }
+      }
+    },
+    {
+      "name": "10 - Auth: Email verification request",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"email\": \"alice@example.com\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/verify-email" }
+      }
+    },
+    {
+      "name": "11 - Auth: Email verify confirm",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/api/auth/verify?token=<token>" }
+      }
+    },
+    {
+      "name": "12 - Auth: Get current user (authorized)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "url": { "raw": "{{base_url}}/api/users/me" }
+      }
+    },
+    {
+      "name": "13 - Auth: Get current user (no token)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/api/users/me" }
+      }
+    },
+    {
+      "name": "14 - Auth: Get current user (expired token)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{EXPIRED_TOKEN}}" } ],
+        "url": { "raw": "{{base_url}}/api/users/me" }
+      }
+    },
+    {
+      "name": "15 - Auth: Change password (success)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "body": { "mode": "raw", "raw": "{ \"old_password\": \"StrongPass123\", \"new_password\": \"NewStrong123\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/change-password" }
+      }
+    },
+    {
+      "name": "16 - Auth: Change password (wrong old password)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "body": { "mode": "raw", "raw": "{ \"old_password\": \"WrongOld\", \"new_password\": \"NewStrong123\" }" },
+        "url": { "raw": "{{base_url}}/api/auth/change-password" }
+      }
+    },
+    {
+      "name": "17 - Auth: Get user roles",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "url": { "raw": "{{base_url}}/api/auth/roles" }
+      }
+    },
+    {
+      "name": "18 - Auth: Delete account",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ],
+        "url": { "raw": "{{base_url}}/api/auth/me" }
+      }
+    },
+
+    {
+      "name": "19 - AI: Text generate (success)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"prompt\": \"3 travel tips for Kyoto\" }" },
+        "url": { "raw": "{{base_url}}/api/ai/generate" }
+      }
+    },
+    {
+      "name": "20 - AI: Text generate (empty prompt)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/ai/generate" } }
+    },
+    {
+      "name": "21 - AI: Text generate (model override)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"prompt\": \"List attractions in Paris\", \"model\": \"gemini-2.0\" }" }, "url": { "raw": "{{base_url}}/api/ai/generate" } }
+    },
+    {
+      "name": "22 - AI: Text generate (quota -> fallback)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"prompt\": \"List attractions\" }" }, "url": { "raw": "{{base_url}}/api/ai/generate?use_fallback=true" } }
+    },
+    {
+      "name": "23 - AI: Chat (simple message)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"message\": \"What are top 3 in Edinburgh?\" }" }, "url": { "raw": "{{base_url}}/api/ai/chat" } }
+    },
+    {
+      "name": "24 - AI: Chat (conversation history)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"message\": \"Continue the trip plan\", \"history\": [] }" }, "url": { "raw": "{{base_url}}/api/ai/chat" } }
+    },
+    {
+      "name": "25 - AI: Chat (quota -> fallback)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"message\": \"Help\" }" }, "url": { "raw": "{{base_url}}/api/ai/chat?use_fallback=true" } }
+    },
+    {
+      "name": "26 - AI: Chat (invalid body)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/ai/chat" } }
+    },
+    {
+      "name": "27 - AI: Itinerary (3 days)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"destination\": \"Kyoto, Japan\", \"num_days\": 3 }" }, "url": { "raw": "{{base_url}}/api/ai/itinerary" } }
+    },
+    {
+      "name": "28 - AI: Itinerary (invalid num_days)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"destination\": \"Kyoto\", \"num_days\": -1 }" }, "url": { "raw": "{{base_url}}/api/ai/itinerary" } }
+    },
+    {
+      "name": "29 - AI: Itinerary (quota -> fallback)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"destination\": \"Kyoto\", \"num_days\": 3 }" }, "url": { "raw": "{{base_url}}/api/ai/itinerary?use_fallback=true" } }
+    },
+    {
+      "name": "30 - AI: Recommend places (success)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"location\": \"Glasgow, UK\" }" }, "url": { "raw": "{{base_url}}/api/ai/recommend" } }
+    },
+    {
+      "name": "31 - AI: Recommend places (missing location)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/ai/recommend" } }
+    },
+    {
+      "name": "32 - AI: Recommend places (use_fallback)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"location\": \"Glasgow\" }" }, "url": { "raw": "{{base_url}}/api/ai/recommend?use_fallback=true" } }
+    },
+    {
+      "name": "33 - AI: Recommend places (quota -> fallback)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"location\": \"Glasgow\" }" }, "url": { "raw": "{{base_url}}/api/ai/recommend" } }
+    },
+    {
+      "name": "34 - AI: Image analyze (image_url)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"image_url\": \"https://example.com/sample.jpg\" }" }, "url": { "raw": "{{base_url}}/api/ai/analyze-image" } }
+    },
+    {
+      "name": "35 - AI: Image analyze (base64)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"image_data\": \"<base64>\" }" }, "url": { "raw": "{{base_url}}/api/ai/analyze-image" } }
+    },
+    {
+      "name": "36 - AI: Image analyze (invalid image)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/ai/analyze-image" } }
+    },
+    {
+      "name": "37 - AI: Image analyze (quota -> fallback)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"image_url\": \"https://example.com/sample.jpg\" }" }, "url": { "raw": "{{base_url}}/api/ai/analyze-image?use_fallback=true" } }
+    },
+    {
+      "name": "38 - AI: Generate (max_tokens boundary)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"prompt\": \"Long prompt\", \"max_tokens\": 100000 }" }, "url": { "raw": "{{base_url}}/api/ai/generate" } }
+    },
+    {
+      "name": "39 - AI: Generate (stream simulation)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"prompt\": \"Stream test\" }" }, "url": { "raw": "{{base_url}}/api/ai/generate?stream=true" } }
+    },
+    {
+      "name": "40 - AI: Usage/metrics",
+      "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/ai/usage" } }
+    },
+
+    {
+      "name": "41 - Geo: Search single",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search?q=Amalfi" } }
+    },
+    {
+      "name": "42 - Geo: Search single (not found)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search?q=NonexistentPlaceXYZ" } }
+    },
+    {
+      "name": "43 - Geo: Search single (invalid q)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search?q=" } }
+    },
+    {
+      "name": "44 - Geo: Search multiple",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search-multiple?q=Amalfi" } }
+    },
+    {
+      "name": "45 - Geo: Search multiple (no results)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search-multiple?q=NoResultsHere123" } }
+    },
+    {
+      "name": "46 - Geo: Reverse geocode",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/reverse?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "47 - Geo: Reverse geocode (out-of-range)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/reverse?lat=999&lon=999" } }
+    },
+    {
+      "name": "48 - Geo: Async geocode override (dependency)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search?q=Glasgow" } }
+    },
+    {
+      "name": "49 - Geo: Explore OTM (search)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/explore?search=Amalfi" } }
+    },
+    {
+      "name": "50 - Geo: Explore OTM (missing key)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/explore" } }
+    },
+    {
+      "name": "51 - Geo: Explore OTM (category filter)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/explore?category=beaches" } }
+    },
+    {
+      "name": "52 - Geo: Explore OTM (sort Top Rated)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/explore?sort=Top%20Rated" } }
+    },
+    {
+      "name": "53 - Geo: Explore OTM (sort Most Reviewed)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/explore?sort=Most%20Reviewed" } }
+    },
+    {
+      "name": "54 - Geo: Explore OTM (empty results)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/explore?search=NowhereLand12345" } }
+    },
+    {
+      "name": "55 - Geo: Search special chars",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search?q=%C3%A4%C3%B6%C3%BC" } }
+    },
+    {
+      "name": "56 - Geo: Rate-limit/backoff simulation",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/search?q=SlowEndpointTest" } }
+    },
+
+    {
+      "name": "57 - Weather: Current",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "58 - Weather: Current (missing key)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "59 - Weather: Current (invalid coords)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=999&lon=999" } }
+    },
+    {
+      "name": "60 - Weather: Forecast",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather/forecast?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "61 - Weather: Forecast (missing data)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather/forecast?lat=0&lon=0" } }
+    },
+    {
+      "name": "62 - Weather: Fallback enabled",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602" }, "description": "Set USE_WEATHER_FALLBACK=true in server env to test" }
+    },
+    {
+      "name": "63 - Weather: Fallback disabled behavior",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "64 - Weather: Units param (metric)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602&units=metric" } }
+    },
+    {
+      "name": "65 - Weather: Hourly vs daily",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather/forecast?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "66 - Weather: Quota handling -> fallback",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "67 - Weather: Caching behavior",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602" } }
+    },
+    {
+      "name": "68 - Weather: Invalid query (missing lat/lon)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather" } }
+    },
+    {
+      "name": "69 - Weather: Large radius edge case",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/weather?lat=40.634&lon=14.602&radius=1000" } }
+    },
+    {
+      "name": "70 - Weather: Health integration",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health" } }
+    },
+
+    {
+      "name": "71 - Places: Create",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"name\": \"My Place\", \"lat\": 1.23, \"lon\": 4.56, \"description\": \"Test\", \"category\": \"beach\" }" }, "url": { "raw": "{{base_url}}/api/places" } }
+    },
+    {
+      "name": "72 - Places: Create (missing fields)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/places" } }
+    },
+    {
+      "name": "73 - Places: Create (unauthorized)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"name\": \"Test\" }" }, "url": { "raw": "{{base_url}}/api/places" } }
+    },
+    {
+      "name": "74 - Places: Read",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/1" } }
+    },
+    {
+      "name": "75 - Places: Read (not found)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/999999" } }
+    },
+    {
+      "name": "76 - Places: Update",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"description\": \"Updated\" }" }, "url": { "raw": "{{base_url}}/api/places/1" } }
+    },
+    {
+      "name": "77 - Places: Update (unauthorized)",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"description\": \"Updated\" }" }, "url": { "raw": "{{base_url}}/api/places/1" } }
+    },
+    {
+      "name": "78 - Places: Delete",
+      "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/places/1" } }
+    },
+    {
+      "name": "79 - Places: Delete (unauthorized)",
+      "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/api/places/1" } }
+    },
+    {
+      "name": "80 - Places: List (pagination)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places?page=1&per_page=10" } }
+    },
+    {
+      "name": "81 - Places: Search by category",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places?category=beach" } }
+    },
+    {
+      "name": "82 - Places: Create duplicate handling",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"name\": \"My Place\", \"lat\": 1.23, \"lon\": 4.56 }" }, "url": { "raw": "{{base_url}}/api/places/import" } }
+    },
+    {
+      "name": "83 - Places: Upload image",
+      "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] }, "url": { "raw": "{{base_url}}/api/places/1/image" } }
+    },
+    {
+      "name": "84 - Places: Add review",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"rating\": 5, \"text\": \"Great!\" }" }, "url": { "raw": "{{base_url}}/api/places/1/reviews" } }
+    },
+    {
+      "name": "85 - Places: List reviews",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/places/1/reviews" } }
+    },
+    {
+      "name": "86 - Places: Upvote",
+      "request": { "method": "POST", "url": { "raw": "{{base_url}}/api/places/1/vote?action=up" } }
+    },
+    {
+      "name": "87 - Places: Downvote",
+      "request": { "method": "POST", "url": { "raw": "{{base_url}}/api/places/1/vote?action=down" } }
+    },
+    {
+      "name": "88 - Places: Create invalid lat/lon",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"name\": \"Bad Place\", \"lat\": 999, \"lon\": 999 }" }, "url": { "raw": "{{base_url}}/api/places" } }
+    },
+    {
+      "name": "89 - Places: Bulk import",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "[ { \"name\": \"A\", \"lat\":1, \"lon\":2 } ]" }, "url": { "raw": "{{base_url}}/api/places/import" } }
+    },
+    {
+      "name": "90 - Places: Owner-only enforcement",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"description\": \"Private\" }" }, "url": { "raw": "{{base_url}}/api/places/1" } }
+    },
+
+    {
+      "name": "91 - Payments: Create intent",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"amount\":1999, \"currency\":\"usd\" }" }, "url": { "raw": "{{base_url}}/api/payments/create" } }
+    },
+    {
+      "name": "92 - Payments: Create intent (invalid amount)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"amount\": -1 }" }, "url": { "raw": "{{base_url}}/api/payments/create" } }
+    },
+    {
+      "name": "93 - Payments: Create intent (dev mock)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"amount\":1999 }" }, "url": { "raw": "{{base_url}}/api/payments/create?dev=true" } }
+    },
+    {
+      "name": "94 - Payments: Webhook receiver",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"type\": \"payment.succeeded\", \"data\": {} }" }, "url": { "raw": "{{base_url}}/api/payments/webhook" } }
+    },
+    {
+      "name": "95 - Payments: Webhook invalid signature",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Stripe-Signature", "value": "invalid" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/payments/webhook" } }
+    },
+    {
+      "name": "96 - Payments: Fetch status",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/payments/1" } }
+    },
+    {
+      "name": "97 - Payments: Refund",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"reason\": \"requested_by_customer\" }" }, "url": { "raw": "{{base_url}}/api/payments/1/refund" } }
+    },
+    {
+      "name": "98 - Payments: Refund (fail)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/payments/1/refund" } }
+    },
+    {
+      "name": "99 - Payments: List",
+      "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/payments" } }
+    },
+    {
+      "name": "100 - Payments: Create ephemeral key",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ }" }, "url": { "raw": "{{base_url}}/api/payments/ephemeral" } }
+    },
+    {
+      "name": "101 - Payments: Missing STRIPE key handling",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"amount\":1999 }" }, "url": { "raw": "{{base_url}}/api/payments/create" }, "description": "Set STRIPE_SECRET_KEY in server env to test live path" }
+    },
+    {
+      "name": "102 - Payments: Permission checks",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/payments" } }
+    },
+
+    {
+      "name": "103 - User: Get current user",
+      "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/users/me" } }
+    },
+    {
+      "name": "104 - User: Get current user (unauthorized)",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/users/me" } }
+    },
+    {
+      "name": "105 - User: Update profile",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"name\": \"New Name\" }" }, "url": { "raw": "{{base_url}}/api/users/me" } }
+    },
+    {
+      "name": "106 - User: Update profile (invalid)",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"email\": \"bademail\" }" }, "url": { "raw": "{{base_url}}/api/users/me" } }
+    },
+    {
+      "name": "107 - User: Upload avatar",
+      "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": "" } ] }, "url": { "raw": "{{base_url}}/api/users/me/avatar" } }
+    },
+    {
+      "name": "108 - User: Avatar missing file",
+      "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "formdata", "formdata": [] }, "url": { "raw": "{{base_url}}/api/users/me/avatar" } }
+    },
+    {
+      "name": "109 - User: List user places",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/users/1/places" } }
+    },
+    {
+      "name": "110 - User: Change email (confirm flow)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"new_email\": \"new@example.com\" }" }, "url": { "raw": "{{base_url}}/api/users/me/change-email" } }
+    },
+    {
+      "name": "111 - User: Change password",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"old_password\": \"StrongPass123\", \"new_password\": \"AnotherPass123\" }" }, "url": { "raw": "{{base_url}}/api/users/me/change-password" } }
+    },
+    {
+      "name": "112 - User: Export data",
+      "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/users/me/export" } }
+    },
+    {
+      "name": "113 - User: Update preferences",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "body": { "mode": "raw", "raw": "{ \"preferences\": [\"beach\"] }" }, "url": { "raw": "{{base_url}}/api/users/me/preferences" } }
+    },
+    {
+      "name": "114 - User: Delete account (confirmation)",
+      "request": { "method": "DELETE", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/users/me" } }
+    },
+    {
+      "name": "115 - User: Activity",
+      "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/users/me/activity" } }
+    },
+    {
+      "name": "116 - User: Role checks",
+      "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{API_TOKEN}}" } ], "url": { "raw": "{{base_url}}/api/admin/only" }, "description": "Test admin-only endpoints" }
+    },
+
+    {
+      "name": "117 - Health: Ping",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health" } }
+    },
+    {
+      "name": "118 - Health: DB",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health/db" } }
+    },
+    {
+      "name": "119 - Health: External",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health/external" } }
+    },
+    {
+      "name": "120 - Health: Cache",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health/cache" } }
+    },
+    {
+      "name": "121 - Health: Queue",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health/queue" } }
+    },
+    {
+      "name": "122 - Health: Metrics",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/metrics" } }
+    },
+    {
+      "name": "123 - Health: Readiness",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health/ready" } }
+    },
+    {
+      "name": "124 - Health: Liveness",
+      "request": { "method": "GET", "url": { "raw": "{{base_url}}/health/live" } }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "API_TOKEN", "value": "" },
+    { "key": "EXPIRED_TOKEN", "value": "" },
+    { "key": "GEMINI_MODEL", "value": "gemini-2.0-flash" }
+  ]
+}

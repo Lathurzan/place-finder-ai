@@ -24,7 +24,7 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# ── Configure Gemini SDK (google-genai v1+) ───────────────────────────────────
+#  Configure Gemini SDK (google-genai v1+)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise EnvironmentError("GEMINI_API_KEY is not set in .env")
@@ -34,11 +34,11 @@ from google.genai import types as genai_types     # noqa: E402
 
 _client = genai.Client(api_key=GEMINI_API_KEY)
 
-# ── Active model name ─────────────────────────────────────────────────────────
+#  Active model name
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
 
-# ── Generation configs ────────────────────────────────────────────────────────
+#  Generation configs
 _TEXT_CONFIG = genai_types.GenerateContentConfig(
     temperature=0.7,
     top_p=0.95,
@@ -53,7 +53,7 @@ _VISION_CONFIG = genai_types.GenerateContentConfig(
 )
 
 
-# ── Internal helpers ──────────────────────────────────────────────────────────
+#  Internal helpers
 def _safe_usage(response) -> dict:
     """Return token counts; returns empty dict if metadata unavailable."""
     try:
@@ -97,7 +97,7 @@ def _normalise_history(history: list) -> list:
     return out
 
 
-# ── 1. General Chat ───────────────────────────────────────────────────────────
+#  1. General Chat 
 def chat_with_gemini(
     user_message: str,
     chat_history: list | None = None,
@@ -134,7 +134,7 @@ def chat_with_gemini(
         return {"success": False, "error": str(exc)}
 
 
-# ── 2. Image Analysis ─────────────────────────────────────────────────────────
+#  2. Image Analysis 
 def analyze_image(
     image_data: str,
     prompt:     str | None = None,
@@ -194,7 +194,7 @@ def analyze_image(
         return {"success": False, "error": str(exc)}
 
 
-# ── 3. Itinerary Generator ────────────────────────────────────────────────────
+#  3. Itinerary Generator 
 def generate_itinerary(
     destination:  str,
     num_days:     int,

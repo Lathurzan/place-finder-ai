@@ -159,7 +159,7 @@ function PlaceCard({ place, onExplore }: { place: Place; onExplore: (id: number)
         )}
         {place.trending && (
           <span className="absolute top-3 left-3 z-10 flex items-center gap-1 text-[10px] font-bold bg-orange-500/90 text-white px-2 py-0.5 rounded-full">
-            🔥 Trending
+            Trending
           </span>
         )}
         {/* Bookmark button — saves to DB */}
@@ -233,6 +233,37 @@ export default function Explore() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Recommendations modal state
+  const [showRecsModal, setShowRecsModal] = useState(false);
+  const [recs, setRecs] = useState<any[]>([]);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [recsError, setRecsError] = useState<string | null>(null);
+
+  const openRecommendationsModal = async () => {
+    setShowRecsModal(true);
+    if (recs.length > 0 || recsLoading) return;
+    setRecsLoading(true);
+    setRecsError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/ml/recommendations-csv?top_n=9`);
+      if (!res.ok) throw new Error(`ML API ${res.status}`);
+      const data = await res.json();
+      const list = Array.isArray(data.recommendations) ? data.recommendations : [];
+      const sanitized = list.map((it: any) => ({
+        id: it.id ?? it.row_id ?? null,
+        name: it.name ?? it.title ?? String(it.name ?? it["name"] ?? "Unknown"),
+        description: it.description ?? it.summary ?? "",
+        image: it.col_13 ?? it.image_url ?? null,
+        similarity: Number.isFinite(+it.similarity) ? +it.similarity : null,
+      }));
+      setRecs(sanitized);
+    } catch (err: any) {
+      setRecsError(err?.message || "Failed to load recommendations");
+      setRecs([]);
+    } finally {
+      setRecsLoading(false);
+    }
+  };
 
   // Handler for Topbar search
   const handleTopBarSearch = (q: string) => {
@@ -289,15 +320,90 @@ export default function Explore() {
             </div>
 
             <button
-              onClick={() => navigate("/finder")}
+              onClick={() => openRecommendationsModal()}
               className="flex items-center gap-2 self-start px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[13px] font-semibold text-black transition-all duration-150 shadow-lg shadow-emerald-500/25 active:scale-[0.98] whitespace-nowrap"
             >
               <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <circle cx="9" cy="9" r="6" /><path d="M15 15l3 3" />
               </svg>
-              Open Finder
+              Recommended for you
             </button>
           </div>
+          {/* Recommendations modal (opens when user clicks the button) */}
+          {showRecsModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRecsModal(false)} />
+
+              <div className="relative z-10 w-full max-w-4xl mx-auto bg-white dark:bg-[#061826] rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-200">
+                {/* Header */}
+                <div className="flex items-start justify-between px-6 py-4 border-b border-gray-100 dark:border-white/[0.04]">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recommended for you</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Personalized picks based on your recent searches and bookmarks.</p>
+                  </div>
+                  <div className="ml-4 flex items-start">
+                    <button
+                      aria-label="Close recommendations"
+                      onClick={() => setShowRecsModal(false)}
+                      className="w-9 h-9 rounded-full bg-white dark:bg-[#0b1528] flex items-center justify-center text-gray-600 hover:bg-gray-100 dark:hover:bg-white/5 shadow-sm border border-gray-100 dark:border-white/[0.04]"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 max-h-[70vh] overflow-auto">
+                  {recsLoading && <div className="text-gray-500">Loading…</div>}
+                  {recsError && <div className="text-red-500">{recsError}</div>}
+                  {!recsLoading && !recsError && recs.length === 0 && (
+                    <div className="text-gray-600 text-center py-10">No recommendations available.</div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {recs.map((r) => (
+                      <div key={r.id ?? r.name} className="bg-white dark:bg-[#041226] border border-gray-100 dark:border-white/[0.04] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="w-full h-40 bg-gray-100 dark:bg-white/5 overflow-hidden">
+                          {r.image ? (
+                            <img src={r.image} alt={r.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-3xl">📍</div>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">{r.name}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{r.description}</div>
+                            </div>
+                            <div className="text-sm text-gray-400 ml-2">{r.similarity ? `${(r.similarity * 100).toFixed(0)}%` : ''}</div>
+                          </div>
+
+                          <div className="mt-4 flex items-center gap-2">
+                            <button
+                              onClick={() => { setShowRecsModal(false); if (r.id && Number(r.id)) navigate(`/explore/${r.id}`); else navigate('/finder'); }}
+                              className="px-3 py-1 rounded-md bg-emerald-500 text-white text-sm font-medium"
+                            >
+                              Explore
+                            </button>
+                            <button
+                              onClick={() => { try { navigator.clipboard?.writeText(JSON.stringify(r)); } catch {} }}
+                              className="px-3 py-1 rounded-md bg-gray-50 dark:bg-white/5 text-sm"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Quick stats */}
           <div className="relative z-10 flex flex-wrap gap-6 mt-6">

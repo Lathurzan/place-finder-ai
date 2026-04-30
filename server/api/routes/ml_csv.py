@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
-from services.recommendation_loader import load_recommendations
+import services.recommendation_loader as recommendation_loader
+import math
+from fastapi.encoders import jsonable_encoder
+from typing import Any, Dict, List
 
 router = APIRouter()
 
@@ -11,9 +14,12 @@ async def get_csv_recommendations(
     top_n: int = Query(5, gt=0, le=100),
 ):
     try:
-        df = load_recommendations()
+        df = recommendation_loader.load_recommendations()
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        # Catch unexpected loader errors and return a readable 500
+        raise HTTPException(status_code=500, detail=f"Loader error: {e}")
 
     results = []
 
@@ -36,5 +42,35 @@ async def get_csv_recommendations(
         if any(it.get("similarity") not in (None, "") for it in items):
             items = sorted(items, key=lambda x: float(x.get("similarity") or 0), reverse=True)
         results = items[:top_n]
+
+    # Sanitize records so they are JSON serializable (no inf/NaN/numpy types)
+    def _sanitize_value(v: Any) -> Any:
+        # Handle numeric non-finite values
+        try:
+            # numpy types may not be available; math.isfinite handles Python floats
+            if isinstance(v, float):
+                return v if math.isfinite(v) else None
+        except Exception:
+            pass
+        # Convert numpy types and pandas types via jsonable_encoder, then re-check
+        try:
+            enc = jsonable_encoder(v)
+        except Exception:
+            enc = v
+        # After encoding, ensure floats are finite
+        try:
+            if isinstance(enc, float):
+                return enc if math.isfinite(enc) else None
+        except Exception:
+            pass
+        return enc
+
+    def _sanitize_record(rec: Dict[str, Any]) -> Dict[str, Any]:
+        out: Dict[str, Any] = {}
+        for k, vv in rec.items():
+            out[k] = _sanitize_value(vv)
+        return out
+
+    results = [_sanitize_record(r) for r in results]
 
     return {"source": "CSV Model Output", "count": len(results), "recommendations": results}

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ThemeToggle from "./ThemeToggle";
+// ThemeToggle not used here
+// import ThemeToggle from "./ThemeToggle";
 
 type Props = {
   onSearch?: (query: string) => void;

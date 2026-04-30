@@ -10,7 +10,7 @@ import sys
 import types
 from datetime import datetime
 
-# ── Stub models.user before any server import ────────────────────────────────
+#  Stub models.user before any server import
 if "models.user" not in sys.modules:
     mod_user = types.ModuleType("models.user")
 

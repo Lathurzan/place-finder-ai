@@ -11,9 +11,9 @@ from api.routes import itineraries
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await check_db_connection()
-    print(f"🚀 {settings.APP_NAME} started")
+    print(f"{settings.APP_NAME} started")
     yield
-    print("🛑 Server shutting down")
+    print(" Server shutting down")
 
 
 app = FastAPI(

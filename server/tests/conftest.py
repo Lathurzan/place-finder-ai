@@ -6,10 +6,10 @@ import sys
 import types
 import pytest
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 
 
-# ── Lightweight stub for models.user ─────────────────────────────────────────
+# Lightweight stub for models.user 
 # Avoids pulling in SQLAlchemy mapped models and their heavy dependencies.
 def _install_user_stub():
     if "models.user" in sys.modules:
@@ -38,7 +38,8 @@ def _install_user_stub():
             self.plan = "starter"
             self.avatar_url = None
             self.preferred_lang = "en"
-            self.created_at = datetime.utcnow()
+            # Use timezone-aware UTC timestamps
+            self.created_at = datetime.now(timezone.utc)
 
     mod_user.User = User
     sys.modules["models.user"] = mod_user
@@ -47,7 +48,7 @@ def _install_user_stub():
 _install_user_stub()
 
 
-# ── In-memory async "database" session ───────────────────────────────────────
+#  In-memory async "database" session
 class FakeResult:
     def __init__(self, user):
         self._user = user
@@ -82,7 +83,7 @@ class FakeSession:
         if not hasattr(u, "preferred_lang"):
             u.preferred_lang = "en"
         if not hasattr(u, "created_at"):
-            u.created_at = datetime.utcnow()
+            u.created_at = datetime.now(timezone.utc)
         self.users[u.email] = u
 
     async def refresh(self, user):
@@ -115,3 +116,15 @@ def fake_select(model):
 @pytest.fixture
 def db_session():
     return FakeSession()
+
+
+@pytest.fixture
+def event_loop():
+    """Provide an asyncio event loop for tests that need it (pytest-asyncio).
+    Ensures the import of asyncio is used and avoids linter warnings.
+    """
+    loop = asyncio.new_event_loop()
+    try:
+        yield loop
+    finally:
+        loop.close()
